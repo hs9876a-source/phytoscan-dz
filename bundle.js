@@ -7705,9 +7705,9 @@
       /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { className: "px-6 sm:px-10 pt-8 pb-14", children: [
         /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "psd-mono", style: { color: "rgba(239,234,216,0.55)", fontSize: "12px", letterSpacing: "0.08em" }, children: "PLATEFORME B2B \u2014 FLORE M\xC9DICINALE ALG\xC9RIENNE" }),
         /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("h1", { className: "psd-serif", style: { color: PAPER, fontSize: "clamp(34px, 6vw, 60px)", lineHeight: 1.05, marginTop: "14px", maxWidth: "800px" }, children: [
-          "Chaque plante, une fiche scientifique.",
+          "Du maquis \xE0 la mol\xE9cule,",
           /* @__PURE__ */ (0, import_jsx_runtime.jsx)("br", {}),
-          "Chaque fili\xE8re, un fournisseur v\xE9rifi\xE9."
+          "chaque plante a une histoire."
         ] }),
         /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { style: { color: "rgba(239,234,216,0.75)", fontSize: "16px", maxWidth: "560px", marginTop: "20px", lineHeight: 1.6 }, children: "PhytoScan DZ recense 431 esp\xE8ces de la flore m\xE9dicinale et agroalimentaire alg\xE9rienne, dont 51 fiches d\xE9j\xE0 document\xE9es, et connecte fournisseurs certifi\xE9s et industriels sur une seule plateforme." }),
         /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { className: "flex flex-wrap gap-3", style: { marginTop: "28px" }, children: [
