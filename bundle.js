@@ -7497,35 +7497,46 @@
   var RUST = "#B5651D";
   var GOLD = "#C9971C";
   var MUTED = "#5B6B5E";
-  var PLANTS = [
-    { id: "PSD-014", latin: "Globularia alypum", common: "Tasselgha \u2014 A\xEFn arnab", family: "Plantaginaceae", usage: "Usage traditionnel digestif ; int\xE9r\xEAt phytoth\xE9rapeutique document\xE9", zone: "Atlas tellien, hauts plateaux", cat: "pharma" },
-    { id: "PSD-027", latin: "Rosmarinus officinalis", common: "Iklil el jabal \u2014 Romarin", family: "Lamiaceae", usage: "Antioxydant ; huile essentielle pour cosm\xE9tique et parfumerie", zone: "Kabylie, Atlas blid\xE9en", cat: "cosmetique" },
-    { id: "PSD-033", latin: "Artemisia herba-alba", common: "Chih \u2014 Armoise blanche", family: "Asteraceae", usage: "Antispasmodique traditionnel ; insectifuge naturel", zone: "Hauts plateaux, steppe saharienne", cat: "pharma" },
-    { id: "PSD-041", latin: "Thymus algeriensis", common: "Za\xE2tar \u2014 Thym d'Alg\xE9rie", family: "Lamiaceae", usage: "Antiseptique ; ar\xF4me et conservateur naturel agroalimentaire", zone: "Tell, Kabylie", cat: "agro" },
-    { id: "PSD-052", latin: "Myrtus communis", common: "Rihane \u2014 Myrte", family: "Myrtaceae", usage: "Astringent ; hydrolat pour parfumerie et cosm\xE9tique", zone: "Kabylie, Edough", cat: "cosmetique" },
-    { id: "PSD-058", latin: "Ziziphus lotus", common: "Sedra \u2014 Jujubier", family: "Rhamnaceae", usage: "Cicatrisant traditionnel ; soin capillaire", zone: "Sud-ouest, hauts plateaux", cat: "cosmetique" },
-    { id: "PSD-063", latin: "Marrubium vulgare", common: "Merriwet \u2014 Marrube blanc", family: "Lamiaceae", usage: "Usage traditionnel des voies respiratoires", zone: "Tell, hauts plateaux", cat: "pharma" },
-    { id: "PSD-071", latin: "Lawsonia inermis", common: "Henn\xE9", family: "Lythraceae", usage: "Colorant naturel ; soin capillaire et cosm\xE9tique", zone: "Oasis sahariennes (Sud)", cat: "cosmetique" },
-    { id: "PSD-079", latin: "Pistacia lentiscus", common: "Drou \u2014 Lentisque", family: "Anacardiaceae", usage: "R\xE9sine aromatique ; huile pour cosm\xE9tique", zone: "Littoral, Kabylie", cat: "cosmetique" },
-    { id: "PSD-084", latin: "Thymus vulgaris", common: "Za\xE2tar hor \u2014 Thym commun", family: "Lamiaceae", usage: "Ar\xF4me culinaire ; conservateur naturel", zone: "Tell atlantique", cat: "agro" },
-    { id: "PSD-091", latin: "Ruta chalepensis", common: "Fidjel \u2014 Rue", family: "Rutaceae", usage: "Antispasmodique traditionnel", zone: "Tell, hauts plateaux", cat: "pharma" },
-    { id: "PSD-097", latin: "Ceratonia siliqua", common: "Kharoub \u2014 Caroubier", family: "Fabaceae", usage: "Poudre et gomme ; ingr\xE9dient agroalimentaire", zone: "Tell, Kabylie", cat: "agro" }
+  var PLANTS = [];
+  function normalizeCategoryTokens(category) {
+    return category.split(";").map((s) => s.trim().toLowerCase());
+  }
+  var CAT_BUCKETS = [
+    { key: "all", label: "Toutes", match: () => true },
+    { key: "medicinale", label: "M\xE9dicinale", match: (toks) => toks.some((t) => t.startsWith("m\xE9dicinale")) },
+    { key: "agro", label: "Agroalimentaire", match: (toks) => toks.some((t) => t.startsWith("agroalimentaire")) },
+    { key: "aromatique", label: "Aromatique / condimentaire", match: (toks) => toks.some((t) => t.startsWith("aromatique") || t.startsWith("condimentaire")) },
+    { key: "pastorale", label: "Pastorale / fourrag\xE8re", match: (toks) => toks.some((t) => t.startsWith("pastorale") || t.startsWith("fourrag\xE8re")) },
+    { key: "sauvage", label: "Alimentaire sauvage / forestière", match: (toks) => toks.some((t) => t.startsWith("alimentaire") || t.startsWith("foresti\xE8re")) },
+    { key: "adoc", label: "\xC0 documenter", match: (toks, documented) => !documented }
   ];
+  function plantMatchesCat(plant, key) {
+    if (key === "all") return true;
+    const bucket = CAT_BUCKETS.find((b) => b.key === key);
+    if (!bucket) return true;
+    return bucket.match(normalizeCategoryTokens(plant.category), plant.documented);
+  }
+  function usePlantsData() {
+    const [plants, setPlants] = (0, import_react3.useState)([]);
+    const [loading, setLoading] = (0, import_react3.useState)(true);
+    (0, import_react3.useEffect)(() => {
+      fetch("plants.json").then((r) => r.json()).then((data) => {
+        setPlants(data);
+        setLoading(false);
+      }).catch(() => setLoading(false));
+    }, []);
+    return { plants, loading };
+  }
   var OFFERS = [
     { id: "OFR-1042", plant: "Rosmarinus officinalis", supplier: "SARL Atlas Botanica", wilaya: "Tlemcen", form: "Huile essentielle", qty: "40 kg / mois", price: "\u2248 8 500 DA/kg", cert: "certifie" },
-    { id: "OFR-1058", plant: "Thymus algeriensis", supplier: "Groupement Femmes Rurales Djurdjura", wilaya: "Tizi Ouzou", form: "Plante s\xE9ch\xE9e", qty: "250 kg / mois", price: "\u2248 900 DA/kg", cert: "certifie" },
-    { id: "OFR-1063", plant: "Myrtus communis", supplier: "SARL Edough Nature", wilaya: "Annaba", form: "Hydrolat", qty: "120 L / mois", price: "\u2248 1 200 DA/L", cert: "encours" },
-    { id: "OFR-1071", plant: "Lawsonia inermis", supplier: "Coop\xE9rative Oasis Touat", wilaya: "Adrar", form: "Poudre", qty: "500 kg / mois", price: "\u2248 650 DA/kg", cert: "certifie" },
+    { id: "OFR-1058", plant: "Thymus vulgaris", supplier: "Groupement Femmes Rurales Djurdjura", wilaya: "Tizi Ouzou", form: "Plante s\xE9ch\xE9e", qty: "250 kg / mois", price: "\u2248 900 DA/kg", cert: "certifie" },
+    { id: "OFR-1063", plant: "Laurus nobilis", supplier: "SARL Edough Nature", wilaya: "Annaba", form: "Hydrolat", qty: "120 L / mois", price: "\u2248 1 200 DA/L", cert: "encours" },
+    { id: "OFR-1071", plant: "Malva sylvestris", supplier: "Coop\xE9rative Oasis Touat", wilaya: "Adrar", form: "Poudre", qty: "500 kg / mois", price: "\u2248 650 DA/kg", cert: "certifie" },
     { id: "OFR-1079", plant: "Pistacia lentiscus", supplier: "Coop\xE9rative Aur\xE8s Plantes", wilaya: "Batna", form: "R\xE9sine brute", qty: "80 kg / mois", price: "\u2248 3 200 DA/kg", cert: "encours" },
     { id: "OFR-1084", plant: "Globularia alypum", supplier: "SARL Kabylie Botanica", wilaya: "B\xE9ja\xEFa", form: "Plante s\xE9ch\xE9e", qty: "150 kg / mois", price: "\u2248 700 DA/kg", cert: "certifie" },
     { id: "OFR-1090", plant: "Ceratonia siliqua", supplier: "Coop\xE9rative Sahel Kharoub", wilaya: "Mostaganem", form: "Poudre", qty: "600 kg / mois", price: "\u2248 380 DA/kg", cert: "certifie" }
   ];
-  var CATS = [
-    { key: "all", label: "Toutes les fili\xE8res" },
-    { key: "pharma", label: "Pharmaceutique" },
-    { key: "cosmetique", label: "Cosm\xE9tique" },
-    { key: "agro", label: "Agroalimentaire" }
-  ];
+  var CATS = CAT_BUCKETS.map((b) => ({ key: b.key, label: b.label }));
   function Fonts() {
     return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("style", { children: `
       @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
@@ -7585,7 +7596,8 @@
           minWidth: "230px",
           maxWidth: "230px",
           padding: "18px 16px 14px",
-          transition: "transform 0.15s ease, box-shadow 0.15s ease"
+          transition: "transform 0.15s ease, box-shadow 0.15s ease",
+          opacity: plant.documented ? 1 : 0.7
         },
         onMouseEnter: (e) => {
           e.currentTarget.style.transform = "translateY(-3px)";
@@ -7603,9 +7615,9 @@
               plant.id
             ] })
           ] }),
-          /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "psd-serif italic", style: { fontSize: "17px", color: INK, lineHeight: 1.25 }, children: plant.latin }),
-          /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { fontSize: "12.5px", color: MUTED, marginTop: "4px" }, children: plant.common }),
-          /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { marginTop: "12px" }, children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Tag, { tone: plant.cat === "pharma" ? "moss" : plant.cat === "cosmetique" ? "gold" : "rust", children: CATS.find((c) => c.key === plant.cat)?.label }) })
+          /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "psd-serif italic", style: { fontSize: "17px", color: INK, lineHeight: 1.25 }, children: plant.scientificName }),
+          /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { fontSize: "12.5px", color: MUTED, marginTop: "4px" }, children: plant.vernacularName }),
+          /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { marginTop: "12px" }, children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Tag, { tone: plant.documented ? "moss" : "gold", children: plant.documented ? plant.category : "\xC0 documenter" }) })
         ]
       }
     );
@@ -7633,30 +7645,34 @@
                 "FICHE N\xB0 ",
                 plant.id
               ] }),
-              /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "psd-serif italic", style: { fontSize: "26px", color: INK, marginTop: "4px" }, children: plant.latin }),
-              /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { fontSize: "14px", color: MUTED, marginBottom: "16px" }, children: plant.common }),
+              /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "psd-serif italic", style: { fontSize: "26px", color: INK, marginTop: "4px" }, children: plant.scientificName }),
+              /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { fontSize: "14px", color: MUTED, marginBottom: "16px" }, children: plant.vernacularName }),
               /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { className: "grid grid-cols-2 gap-4", style: { fontSize: "13px" }, children: [
                 /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [
                   /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "psd-mono", style: { color: MUTED, fontSize: "10.5px" }, children: "FAMILLE" }),
                   /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { color: INK, marginTop: "2px" }, children: plant.family })
                 ] }),
                 /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [
-                  /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "psd-mono", style: { color: MUTED, fontSize: "10.5px" }, children: "ZONE DE R\xC9COLTE" }),
-                  /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { color: INK, marginTop: "2px" }, children: plant.zone })
+                  /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "psd-mono", style: { color: MUTED, fontSize: "10.5px" }, children: "R\xC9GION" }),
+                  /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { color: INK, marginTop: "2px" }, children: plant.region })
                 ] })
               ] }),
               /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { style: { marginTop: "14px" }, children: [
-                /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "psd-mono", style: { color: MUTED, fontSize: "10.5px" }, children: "USAGE INDUSTRIEL" }),
-                /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { color: INK, marginTop: "2px", fontSize: "13.5px", lineHeight: 1.5 }, children: plant.usage })
+                /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "psd-mono", style: { color: MUTED, fontSize: "10.5px" }, children: "CAT\xC9GORIE" }),
+                /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { color: INK, marginTop: "2px", fontSize: "13.5px", lineHeight: 1.5 }, children: plant.category })
               ] }),
-              /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { marginTop: "18px" }, children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Tag, { tone: plant.cat === "pharma" ? "moss" : plant.cat === "cosmetique" ? "gold" : "rust", children: CATS.find((c) => c.key === plant.cat)?.label }) })
+              /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { style: { marginTop: "14px" }, children: [
+                /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "psd-mono", style: { color: MUTED, fontSize: "10.5px" }, children: "PARTIE / USAGE" }),
+                /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { color: INK, marginTop: "2px", fontSize: "13.5px", lineHeight: 1.5 }, children: plant.partsUsage })
+              ] }),
+              /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { marginTop: "18px" }, children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Tag, { tone: plant.documented ? "moss" : "gold", children: plant.documented ? plant.validation : "\xC0 documenter" }) })
             ]
           }
         )
       }
     );
   }
-  function Landing({ onEnterDemo }) {
+  function Landing({ onEnterDemo, plants }) {
     return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [
       /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { className: "flex items-center justify-between px-6 sm:px-10 py-6", children: [
         /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { className: "flex items-center gap-2", children: [
@@ -7689,11 +7705,11 @@
       /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { className: "px-6 sm:px-10 pt-8 pb-14", children: [
         /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "psd-mono", style: { color: "rgba(239,234,216,0.55)", fontSize: "12px", letterSpacing: "0.08em" }, children: "PLATEFORME B2B \u2014 FLORE M\xC9DICINALE ALG\xC9RIENNE" }),
         /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("h1", { className: "psd-serif", style: { color: PAPER, fontSize: "clamp(34px, 6vw, 60px)", lineHeight: 1.05, marginTop: "14px", maxWidth: "800px" }, children: [
-          "Chaque plante a un dossier.",
+          "Chaque plante, une fiche scientifique.",
           /* @__PURE__ */ (0, import_jsx_runtime.jsx)("br", {}),
-          "Chaque fili\xE8re, une source fiable."
+          "Chaque fili\xE8re, un fournisseur v\xE9rifi\xE9."
         ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { style: { color: "rgba(239,234,216,0.75)", fontSize: "16px", maxWidth: "560px", marginTop: "20px", lineHeight: 1.6 }, children: "PhytoScan DZ documente plus de 400 esp\xE8ces de la flore m\xE9dicinale alg\xE9rienne et connecte fournisseurs certifi\xE9s et industriels pharmaceutiques, cosm\xE9tiques et agroalimentaires sur une seule plateforme." }),
+        /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { style: { color: "rgba(239,234,216,0.75)", fontSize: "16px", maxWidth: "560px", marginTop: "20px", lineHeight: 1.6 }, children: "PhytoScan DZ recense 431 esp\xE8ces de la flore m\xE9dicinale et agroalimentaire alg\xE9rienne, dont 51 fiches d\xE9j\xE0 document\xE9es, et connecte fournisseurs certifi\xE9s et industriels sur une seule plateforme." }),
         /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { className: "flex flex-wrap gap-3", style: { marginTop: "28px" }, children: [
           /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(
             "button",
@@ -7721,11 +7737,11 @@
           )
         ] })
       ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "psd-scrollbar flex gap-4 px-6 sm:px-10 pb-14 overflow-x-auto", children: PLANTS.slice(0, 8).map((p) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SpecimenCard, { plant: p, onOpen: onEnterDemo }, p.id)) }),
+      /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "psd-scrollbar flex gap-4 px-6 sm:px-10 pb-14 overflow-x-auto", children: plants.filter((p) => p.documented).slice(0, 8).map((p) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SpecimenCard, { plant: p, onOpen: onEnterDemo }, p.id)) }),
       /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { background: PAPER }, className: "px-6 sm:px-10 py-12", children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "grid grid-cols-1 sm:grid-cols-3 gap-8", style: { maxWidth: "900px" }, children: [
-        ["400+", "esp\xE8ces v\xE9g\xE9tales document\xE9es"],
-        ["2", "couches : donn\xE9e scientifique et marketplace"],
-        ["3", "fili\xE8res industrielles connect\xE9es"]
+        [String(plants.length || 431), "esp\xE8ces recens\xE9es dans la base"],
+        [String(plants.filter((p) => p.documented).length || 51), "fiches d\xE9j\xE0 document\xE9es"],
+        ["2", "couches : donn\xE9e scientifique et marketplace"]
       ].map(([n, l]) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [
         /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "psd-serif", style: { color: MOSS_DEEP, fontSize: "42px" }, children: n }),
         /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { color: MUTED, fontSize: "13px", marginTop: "4px" }, children: l })
@@ -7771,7 +7787,7 @@
       ] })
     ] });
   }
-  function Demo({ onBack }) {
+  function Demo({ onBack, plants }) {
     const [tab, setTab] = (0, import_react3.useState)("database");
     const [query, setQuery] = (0, import_react3.useState)("");
     const [cat, setCat] = (0, import_react3.useState)("all");
@@ -7780,13 +7796,13 @@
     const [rfqOpen, setRfqOpen] = (0, import_react3.useState)(false);
     const [sent, setSent] = (0, import_react3.useState)(false);
     const filteredPlants = (0, import_react3.useMemo)(() => {
-      return PLANTS.filter((p) => {
-        const matchCat = cat === "all" || p.cat === cat;
+      return plants.filter((p) => {
+        const matchCat = plantMatchesCat(p, cat);
         const q = query.trim().toLowerCase();
-        const matchQuery = !q || p.latin.toLowerCase().includes(q) || p.common.toLowerCase().includes(q);
+        const matchQuery = !q || p.scientificName.toLowerCase().includes(q) || p.vernacularName.toLowerCase().includes(q) || p.family.toLowerCase().includes(q);
         return matchCat && matchQuery;
       });
-    }, [query, cat]);
+    }, [plants, query, cat]);
     const filteredOffers = (0, import_react3.useMemo)(() => {
       return OFFERS.filter((o) => {
         const q = query.trim().toLowerCase();
@@ -7889,7 +7905,11 @@
             filteredPlants.length,
             " esp\xE8ce",
             filteredPlants.length > 1 ? "s" : "",
-            " \u2014 extrait de d\xE9monstration (base compl\xE8te : 400+)"
+            " sur ",
+            plants.length,
+            " recens\xE9es \u2014 ",
+            plants.filter((p) => p.documented).length,
+            " fiches document\xE9es \xE0 ce stade"
           ] }),
           /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { className: "grid gap-4", style: { gridTemplateColumns: "repeat(auto-fill, minmax(230px, 1fr))" }, children: [
             filteredPlants.map((p) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SpecimenCard, { plant: p, onOpen: setOpenPlant }, p.id)),
@@ -8000,9 +8020,10 @@
   }
   function PhytoScanMVP() {
     const [view, setView] = (0, import_react3.useState)("landing");
+    const { plants, loading } = usePlantsData();
     return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { className: "psd-root min-h-screen", style: { background: view === "landing" ? INK : PAPER }, children: [
       /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Fonts, {}),
-      view === "landing" ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Landing, { onEnterDemo: () => setView("demo") }) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Demo, { onBack: () => setView("landing") })
+      loading ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { color: view === "landing" ? PAPER : INK, padding: "40px", fontSize: "14px" }, children: "Chargement de la base botanique\u2026" }) : view === "landing" ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Landing, { onEnterDemo: () => setView("demo"), plants }) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Demo, { onBack: () => setView("landing"), plants })
     ] });
   }
 
