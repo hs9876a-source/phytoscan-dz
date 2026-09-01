@@ -7498,23 +7498,18 @@
   var GOLD = "#C9971C";
   var MUTED = "#5B6B5E";
   var PLANTS = [];
-  function normalizeCategoryTokens(category) {
-    return category.split(";").map((s) => s.trim().toLowerCase());
-  }
-  var CAT_BUCKETS = [
-    { key: "all", label: "Toutes", match: () => true },
-    { key: "medicinale", label: "M\xE9dicinale", match: (toks) => toks.some((t) => t.startsWith("m\xE9dicinale")) },
-    { key: "agro", label: "Agroalimentaire", match: (toks) => toks.some((t) => t.startsWith("agroalimentaire")) },
-    { key: "aromatique", label: "Aromatique / condimentaire", match: (toks) => toks.some((t) => t.startsWith("aromatique") || t.startsWith("condimentaire")) },
-    { key: "pastorale", label: "Pastorale / fourrag\xE8re", match: (toks) => toks.some((t) => t.startsWith("pastorale") || t.startsWith("fourrag\xE8re")) },
-    { key: "sauvage", label: "Alimentaire sauvage / forestière", match: (toks) => toks.some((t) => t.startsWith("alimentaire") || t.startsWith("foresti\xE8re")) },
-    { key: "adoc", label: "\xC0 documenter", match: (toks, documented) => !documented }
+  var CATS = [
+    { key: "all", label: "Toutes" },
+    { key: "medicinale", label: "Usage m\xE9dicinal" },
+    { key: "agro", label: "Usage agro-alimentaire" },
+    { key: "dermo", label: "Usage dermocosm\xE9tique" }
   ];
   function plantMatchesCat(plant, key) {
     if (key === "all") return true;
-    const bucket = CAT_BUCKETS.find((b) => b.key === key);
-    if (!bucket) return true;
-    return bucket.match(normalizeCategoryTokens(plant.category), plant.documented);
+    if (key === "medicinale") return !!plant.medicinalUse;
+    if (key === "agro") return !!plant.agroFoodUse;
+    if (key === "dermo") return !!plant.dermocosmeticUse;
+    return true;
   }
   function usePlantsData() {
     const [plants, setPlants] = (0, import_react3.useState)([]);
@@ -7536,7 +7531,6 @@
     { id: "OFR-1084", plant: "Globularia alypum", supplier: "SARL Kabylie Botanica", wilaya: "B\xE9ja\xEFa", form: "Plante s\xE9ch\xE9e", qty: "150 kg / mois", price: "\u2248 700 DA/kg", cert: "certifie" },
     { id: "OFR-1090", plant: "Ceratonia siliqua", supplier: "Coop\xE9rative Sahel Kharoub", wilaya: "Mostaganem", form: "Poudre", qty: "600 kg / mois", price: "\u2248 380 DA/kg", cert: "certifie" }
   ];
-  var CATS = CAT_BUCKETS.map((b) => ({ key: b.key, label: b.label }));
   function Fonts() {
     return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("style", { children: `
       @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
@@ -7596,8 +7590,7 @@
           minWidth: "230px",
           maxWidth: "230px",
           padding: "18px 16px 14px",
-          transition: "transform 0.15s ease, box-shadow 0.15s ease",
-          opacity: plant.documented ? 1 : 0.7
+          transition: "transform 0.15s ease, box-shadow 0.15s ease"
         },
         onMouseEnter: (e) => {
           e.currentTarget.style.transform = "translateY(-3px)";
@@ -7616,8 +7609,11 @@
             ] })
           ] }),
           /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "psd-serif italic", style: { fontSize: "17px", color: INK, lineHeight: 1.25 }, children: plant.scientificName }),
-          /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { fontSize: "12.5px", color: MUTED, marginTop: "4px" }, children: plant.vernacularName }),
-          /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { marginTop: "12px" }, children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Tag, { tone: plant.documented ? "moss" : "gold", children: plant.documented ? plant.category : "\xC0 documenter" }) })
+          /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { style: { fontSize: "12.5px", color: MUTED, marginTop: "4px" }, children: [
+            plant.vernacularNameFr,
+            plant.vernacularNameAr ? ` \u2014 ${plant.vernacularNameAr}` : ""
+          ] }),
+          /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { marginTop: "12px" }, children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Tag, { tone: "moss", children: plant.family }) })
         ]
       }
     );
@@ -7634,7 +7630,7 @@
           "div",
           {
             className: "psd-specimen w-full",
-            style: { maxWidth: "480px", padding: "28px" },
+            style: { maxWidth: "520px", padding: "28px", maxHeight: "88vh", overflowY: "auto" },
             onClick: (e) => e.stopPropagation(),
             children: [
               /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { className: "flex items-start justify-between", children: [
@@ -7646,26 +7642,37 @@
                 plant.id
               ] }),
               /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "psd-serif italic", style: { fontSize: "26px", color: INK, marginTop: "4px" }, children: plant.scientificName }),
-              /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { fontSize: "14px", color: MUTED, marginBottom: "16px" }, children: plant.vernacularName }),
+              /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { style: { fontSize: "14px", color: MUTED, marginBottom: "16px" }, children: [
+                plant.vernacularNameFr,
+                plant.vernacularNameAr ? ` \u2014 ${plant.vernacularNameAr}` : ""
+              ] }),
               /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { className: "grid grid-cols-2 gap-4", style: { fontSize: "13px" }, children: [
                 /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [
                   /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "psd-mono", style: { color: MUTED, fontSize: "10.5px" }, children: "FAMILLE" }),
                   /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { color: INK, marginTop: "2px" }, children: plant.family })
                 ] }),
                 /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [
-                  /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "psd-mono", style: { color: MUTED, fontSize: "10.5px" }, children: "R\xC9GION" }),
-                  /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { color: INK, marginTop: "2px" }, children: plant.region })
+                  /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "psd-mono", style: { color: MUTED, fontSize: "10.5px" }, children: "PARTIE(S) UTILIS\xC9E(S)" }),
+                  /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { color: INK, marginTop: "2px" }, children: plant.partsUsed })
                 ] })
               ] }),
               /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { style: { marginTop: "14px" }, children: [
-                /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "psd-mono", style: { color: MUTED, fontSize: "10.5px" }, children: "CAT\xC9GORIE" }),
-                /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { color: INK, marginTop: "2px", fontSize: "13.5px", lineHeight: 1.5 }, children: plant.category })
+                /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "psd-mono", style: { color: MUTED, fontSize: "10.5px" }, children: "USAGE M\xC9DICINAL TRADITIONNEL" }),
+                /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { color: INK, marginTop: "2px", fontSize: "13.5px", lineHeight: 1.5 }, children: plant.medicinalUse })
               ] }),
               /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { style: { marginTop: "14px" }, children: [
-                /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "psd-mono", style: { color: MUTED, fontSize: "10.5px" }, children: "PARTIE / USAGE" }),
-                /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { color: INK, marginTop: "2px", fontSize: "13.5px", lineHeight: 1.5 }, children: plant.partsUsage })
+                /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "psd-mono", style: { color: MUTED, fontSize: "10.5px" }, children: "USAGE AGRO-ALIMENTAIRE" }),
+                /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { color: INK, marginTop: "2px", fontSize: "13.5px", lineHeight: 1.5 }, children: plant.agroFoodUse })
               ] }),
-              /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { marginTop: "18px" }, children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Tag, { tone: plant.documented ? "moss" : "gold", children: plant.documented ? plant.validation : "\xC0 documenter" }) })
+              /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { style: { marginTop: "14px" }, children: [
+                /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "psd-mono", style: { color: MUTED, fontSize: "10.5px" }, children: "USAGE DERMOCOSM\xC9TIQUE" }),
+                /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { color: INK, marginTop: "2px", fontSize: "13.5px", lineHeight: 1.5 }, children: plant.dermocosmeticUse })
+              ] }),
+              /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { style: { marginTop: "14px" }, children: [
+                /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "psd-mono", style: { color: MUTED, fontSize: "10.5px" }, children: "PRINCIPAUX COMPOS\xC9S ACTIFS" }),
+                /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { color: INK, marginTop: "2px", fontSize: "13.5px", lineHeight: 1.5 }, children: plant.activeCompounds })
+              ] }),
+              /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { marginTop: "18px" }, children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Tag, { tone: "gold", children: plant.distributionStatus }) })
             ]
           }
         )
@@ -7709,7 +7716,7 @@
           /* @__PURE__ */ (0, import_jsx_runtime.jsx)("br", {}),
           "chaque plante a une histoire."
         ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { style: { color: "rgba(239,234,216,0.75)", fontSize: "16px", maxWidth: "560px", marginTop: "20px", lineHeight: 1.6 }, children: "PhytoScan DZ recense 431 esp\xE8ces de la flore m\xE9dicinale et agroalimentaire alg\xE9rienne, dont 51 fiches d\xE9j\xE0 document\xE9es, et connecte fournisseurs certifi\xE9s et industriels sur une seule plateforme." }),
+        /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { style: { color: "rgba(239,234,216,0.75)", fontSize: "16px", maxWidth: "560px", marginTop: "20px", lineHeight: 1.6 }, children: "PhytoScan DZ documente 439 esp\xE8ces de la flore m\xE9dicinale et agroalimentaire alg\xE9rienne \u2014 usages m\xE9dicinal, agro-alimentaire et dermocosm\xE9tique, compos\xE9s actifs \u2014 et connecte fournisseurs certifi\xE9s et industriels sur une seule plateforme." }),
         /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { className: "flex flex-wrap gap-3", style: { marginTop: "28px" }, children: [
           /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(
             "button",
@@ -7737,11 +7744,11 @@
           )
         ] })
       ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "psd-scrollbar flex gap-4 px-6 sm:px-10 pb-14 overflow-x-auto", children: plants.filter((p) => p.documented).slice(0, 8).map((p) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SpecimenCard, { plant: p, onOpen: onEnterDemo }, p.id)) }),
+      /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "psd-scrollbar flex gap-4 px-6 sm:px-10 pb-14 overflow-x-auto", children: plants.slice(0, 8).map((p) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SpecimenCard, { plant: p, onOpen: onEnterDemo }, p.id)) }),
       /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { background: PAPER }, className: "px-6 sm:px-10 py-12", children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "grid grid-cols-1 sm:grid-cols-3 gap-8", style: { maxWidth: "900px" }, children: [
-        [String(plants.length || 431), "esp\xE8ces recens\xE9es dans la base"],
-        [String(plants.filter((p) => p.documented).length || 51), "fiches d\xE9j\xE0 document\xE9es"],
-        ["2", "couches : donn\xE9e scientifique et marketplace"]
+        [String(plants.length || 439), "esp\xE8ces enti\xE8rement document\xE9es"],
+        [String(new Set(plants.map((p) => p.family)).size || 77), "familles botaniques"],
+        ["3", "usages document\xE9s par esp\xE8ce : m\xE9dicinal, agro-alimentaire, dermocosm\xE9tique"]
       ].map(([n, l]) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [
         /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "psd-serif", style: { color: MOSS_DEEP, fontSize: "42px" }, children: n }),
         /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { style: { color: MUTED, fontSize: "13px", marginTop: "4px" }, children: l })
@@ -7799,7 +7806,7 @@
       return plants.filter((p) => {
         const matchCat = plantMatchesCat(p, cat);
         const q = query.trim().toLowerCase();
-        const matchQuery = !q || p.scientificName.toLowerCase().includes(q) || p.vernacularName.toLowerCase().includes(q) || p.family.toLowerCase().includes(q);
+        const matchQuery = !q || p.scientificName.toLowerCase().includes(q) || p.vernacularNameFr.toLowerCase().includes(q) || (p.vernacularNameAr && p.vernacularNameAr.toLowerCase().includes(q)) || p.family.toLowerCase().includes(q);
         return matchCat && matchQuery;
       });
     }, [plants, query, cat]);
@@ -7907,9 +7914,7 @@
             filteredPlants.length > 1 ? "s" : "",
             " sur ",
             plants.length,
-            " recens\xE9es \u2014 ",
-            plants.filter((p) => p.documented).length,
-            " fiches document\xE9es \xE0 ce stade"
+            " \u2014 base enti\xE8rement document\xE9e (usages m\xE9dicinal, agro-alimentaire, dermocosm\xE9tique)"
           ] }),
           /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { className: "grid gap-4", style: { gridTemplateColumns: "repeat(auto-fill, minmax(230px, 1fr))" }, children: [
             filteredPlants.map((p) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SpecimenCard, { plant: p, onOpen: setOpenPlant }, p.id)),

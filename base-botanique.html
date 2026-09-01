@@ -4,70 +4,33 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>PhytoScan DZ — Base botanique</title>
-<meta name="description" content="Base de données de la flore médicinale et agro-alimentaire algérienne — PhytoScan DZ" />
+<meta name="description" content="Base de données de la flore médicinale et agro-alimentaire algérienne — 439 espèces documentées — PhytoScan DZ" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --green: #2E5339;
-    --green-light: #EAF1EC;
-    --text: #222;
-    --muted: #666;
-    --border: #e2e2e2;
-  }
+  :root { --green: #2E5339; --green-light: #EAF1EC; --text: #222; --muted: #666; --border: #e2e2e2; }
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; }
-  body {
-    font-family: 'IBM Plex Sans', Arial, sans-serif;
-    color: var(--text);
-    background: #fafafa;
-  }
-  header {
-    background: var(--green);
-    color: #fff;
-    padding: 24px 32px;
-  }
-  header h1 {
-    font-family: 'Fraunces', serif;
-    margin: 0 0 4px 0;
-    font-size: 28px;
-  }
-  header a {
-    color: #fff;
-    opacity: 0.85;
-    text-decoration: none;
-    font-size: 14px;
-  }
+  body { font-family: 'IBM Plex Sans', Arial, sans-serif; color: var(--text); background: #fafafa; }
+  header { background: var(--green); color: #fff; padding: 24px 32px; }
+  header h1 { font-family: 'Fraunces', serif; margin: 0 0 4px 0; font-size: 28px; }
+  header a { color: #fff; opacity: 0.85; text-decoration: none; font-size: 14px; }
   header a:hover { opacity: 1; text-decoration: underline; }
   main { max-width: 1100px; margin: 0 auto; padding: 24px 20px 60px; }
-  .controls {
-    display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
-    margin-bottom: 8px;
-  }
+  .controls { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
   .controls input, .controls select {
-    padding: 10px 14px;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    font-family: inherit;
-    font-size: 14px;
+    padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px;
+    font-family: inherit; font-size: 14px; background: #fff;
   }
   .controls input { flex: 1; min-width: 240px; }
   .count { color: var(--muted); font-size: 13px; margin: 8px 0 20px; }
-  .grid { display: grid; gap: 14px; }
-  .card {
-    background: #fff;
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 16px 18px;
-  }
-  .card h3 { margin: 0 0 2px 0; font-size: 16px; }
-  .card h3 em { font-style: italic; }
+  .grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
+  .card { background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; }
+  .card h3 { margin: 0 0 2px 0; font-size: 16px; font-style: italic; }
   .card .meta { font-size: 12px; color: var(--muted); margin: 0 0 10px 0; }
-  .card p { margin: 4px 0; font-size: 13.5px; line-height: 1.5; }
-  .card p strong { color: var(--green); }
+  .card p { margin: 5px 0; font-size: 13px; line-height: 1.5; }
+  .card p strong { color: var(--green); display: block; font-size: 10.5px; font-family: 'IBM Plex Mono', monospace; text-transform: uppercase; margin-bottom: 1px; }
   .empty { text-align: center; color: var(--muted); padding: 40px 0; }
 </style>
 </head>
@@ -80,7 +43,7 @@
 
 <main>
   <div class="controls">
-    <input id="search" type="text" placeholder="Rechercher un nom, un usage, un composé..." />
+    <input id="search" type="text" placeholder="Rechercher un nom scientifique, vernaculaire, une famille, un composé..." />
     <select id="family"></select>
   </div>
   <p class="count" id="count"></p>
@@ -96,7 +59,7 @@ async function init() {
   plants = await res.json();
 
   const familySelect = document.getElementById('family');
-  const families = ["Toutes", ...new Set(plants.map(p => p.family))].sort();
+  const families = ["Toutes les familles", ...new Set(plants.map(p => p.family))].sort();
   familySelect.innerHTML = families.map(f => `<option value="${f}">${f}</option>`).join('');
 
   document.getElementById('search').addEventListener('input', render);
@@ -110,14 +73,14 @@ function render() {
   const family = document.getElementById('family').value;
 
   const filtered = plants.filter(p => {
-    const matchesFamily = family === "Toutes" || p.family === family;
+    const matchesFamily = !family || family === "Toutes les familles" || p.family === family;
     if (!matchesFamily) return false;
     if (!q) return true;
-    return [p.scientificName, p.commonNameFr, p.commonNameArDz, p.medicinalUse, p.agroFoodUse, p.dermocosmeticUse, p.activeCompounds]
+    return [p.scientificName, p.vernacularNameFr, p.vernacularNameAr, p.family, p.activeCompounds, p.medicinalUse, p.agroFoodUse, p.dermocosmeticUse]
       .join(' ').toLowerCase().includes(q);
   });
 
-  document.getElementById('count').textContent = `${filtered.length} / ${plants.length} espèces affichées`;
+  document.getElementById('count').textContent = `${filtered.length} / ${plants.length} espèces — 439 fiches documentées`;
 
   const grid = document.getElementById('grid');
   const empty = document.getElementById('empty');
@@ -131,13 +94,15 @@ function render() {
 
   grid.innerHTML = filtered.map(p => `
     <div class="card">
-      <h3><em>${p.scientificName}</em> — ${p.commonNameFr} <span style="color:#999;">(${p.commonNameArDz})</span></h3>
-      <p class="meta">${p.family} · ${p.distributionStatus}</p>
-      <p><strong>Partie utilisée :</strong> ${p.partsUsed}</p>
-      <p><strong>Usage médicinal :</strong> ${p.medicinalUse}</p>
-      <p><strong>Usage agro-alimentaire :</strong> ${p.agroFoodUse}</p>
-      <p><strong>Usage dermocosmétique :</strong> ${p.dermocosmeticUse}</p>
-      <p><strong>Composés actifs :</strong> ${p.activeCompounds}</p>
+      <h3>${p.scientificName}</h3>
+      <p class="meta">${p.vernacularNameFr} — ${p.vernacularNameAr} · N° ${p.id}</p>
+      <p><strong>Famille</strong>${p.family}</p>
+      <p><strong>Partie(s) utilisée(s)</strong>${p.partsUsed}</p>
+      <p><strong>Usage médicinal</strong>${p.medicinalUse}</p>
+      <p><strong>Usage agro-alimentaire</strong>${p.agroFoodUse}</p>
+      <p><strong>Usage dermocosmétique</strong>${p.dermocosmeticUse}</p>
+      <p><strong>Composés actifs</strong>${p.activeCompounds}</p>
+      <p><strong>Répartition / statut</strong>${p.distributionStatus}</p>
     </div>
   `).join('');
 }
