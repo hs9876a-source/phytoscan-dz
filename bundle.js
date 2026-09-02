@@ -7504,11 +7504,23 @@
     { key: "agro", label: "Usage agro-alimentaire" },
     { key: "dermo", label: "Usage dermocosm\xE9tique" }
   ];
+  function hasRealUsage(text) {
+    if (!text) return false;
+    const t = text.trim().toLowerCase();
+    if (t.startsWith("non ")) return false;
+    if (t.startsWith("peu ")) return false;
+    if (t.includes("non document")) return false;
+    if (t.includes("non \xE9tabli")) return false;
+    if (t.includes("non alimentaire")) return false;
+    if (t.includes("non recommand\xE9e")) return false;
+    if (t.includes("sans usage")) return false;
+    return true;
+  }
   function plantMatchesCat(plant, key) {
     if (key === "all") return true;
-    if (key === "medicinale") return !!plant.medicinalUse;
-    if (key === "agro") return !!plant.agroFoodUse;
-    if (key === "dermo") return !!plant.dermocosmeticUse;
+    if (key === "medicinale") return hasRealUsage(plant.medicinalUse);
+    if (key === "agro") return hasRealUsage(plant.agroFoodUse);
+    if (key === "dermo") return hasRealUsage(plant.dermocosmeticUse);
     return true;
   }
   function usePlantsData() {
